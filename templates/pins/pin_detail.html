@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="pin-back-overlay" onclick="history.back()"></div>
+<div class="pin-detail-wrapper">
+    <div class="pin-detail-card">
+        <div class="pin-media">
+            <img src="{{ pin.image.url }}" alt="{{ pin.title }}">
+        </div>
+        <div class="pin-info-panel">
+            <div class="pin-header-actions">
+                <div class="action-buttons">
+                    <button class="btn-icon"><i class="fas fa-ellipsis-h"></i></button>
+                    <a href="{{ pin.image.url }}" download class="btn-icon" title="Download Image" target="_blank"
+                        style="display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-download"></i>
+                    </a>
+                </div>
+                <button class="btn-save btn-red">Save</button>
+            </div>
+
+            {% if pin.link %}
+            <a href="{{ pin.link }}" target="_blank" class="pin-link">{{ pin.link|truncatechars:30 }}</a>
+            {% endif %}
+
+            <h1 class="pin-title">{{ pin.title }}</h1>
+            <p class="pin-desc">{{ pin.description }}</p>
+
+            <div class="creator-row">
+                <a href="#" class="creator-link">
+                    {% if pin.user.profile_image %}
+                    <img src="{{ pin.user.profile_image.url }}" class="user-avatar">
+                    {% else %}
+                    <div class="avatar-placeholder-small">{{ pin.user.username.0|upper }}</div>
+                    {% endif %}
+                    <div class="creator-details">
+                        <span class="creator-name">{{ pin.user.username }}</span>
+                        <span class="follower-count">0 followers</span>
+                    </div>
+                </a>
+                <button class="btn-secondary">Follow</button>
+            </div>
+
+            <div class="comments-section">
+                <h4>Comments</h4>
+                <div class="comment-input-row">
+                    <!-- Comment listing placeholder -->
+                    <p class="text-muted">No comments yet.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

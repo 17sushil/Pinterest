@@ -1,19 +1,56 @@
-{% extends 'base/base.html' %}
-
-{% block title %}Home - Pinterest Clone{% endblock %}
+{% extends 'base.html' %}
 
 {% block content %}
-<div class="container">
-    <div class="home-hero">
-        <h1>Welcome to Pinterest Clone</h1>
-        <p>Discover and share amazing ideas</p>
-        
-        {% if not user.is_authenticated %}
-            <div class="home-cta">
-                <a href="{% url 'accounts:signup' %}" class="btn btn-primary">Get Started</a>
-                <a href="{% url 'accounts:login' %}" class="btn btn-secondary">Sign In</a>
-            </div>
-        {% endif %}
+{% if not request.user.is_authenticated and not query %}
+<div class="hero-section">
+    <div class="hero-content">
+        <h1>Get your next idea</h1>
+        <p class="hero-sub">Search for images, save them to your boards, or download them for your projects.</p>
+        <div class="hero-buttons">
+            <a href="{% url 'accounts:signup' %}" class="btn-primary btn-large">Sign up</a>
+            <a href="{% url 'core:explore' %}" class="btn-secondary btn-large">Explore</a>
+        </div>
     </div>
+    <div class="hero-overlay"></div>
+</div>
+{% endif %}
+
+<div class="masonry-grid"
+    style="margin-top: {% if not request.user.is_authenticated and not query %}0{% else %}20px{% endif %};">
+    {% for pin in pins %}
+    <div class="pin-card">
+        <a href="{% url 'pins:pin_detail' pin.id %}">
+            <img src="{{ pin.image.url }}" alt="{{ pin.title }}">
+            <div class="pin-overlay">
+                <button class="btn-save">Save</button>
+            </div>
+            <div class="pin-info">
+                {% if pin.title %}
+                <h3>{{ pin.title|truncatechars:20 }}</h3>
+                {% endif %}
+                {% if pin.user.profile_image %}
+                <div class="pin-user">
+                    <img src="{{ pin.user.profile_image.url }}" class="user-avatar-small">
+                    <span>{{ pin.user.username }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </a>
+    </div>
+    {% empty %}
+    {% if query %}
+    <div class="empty-state">
+        <h2>No results found for "{{ query }}"</h2>
+        <p>Try searching for something else.</p>
+        <a href="{% url 'core:home' %}" class="btn-secondary">Clear Search</a>
+    </div>
+    {% elif request.user.is_authenticated %}
+    <div class="empty-state">
+        <h2>Welcome to your feed</h2>
+        <p>Follow people or boards to see pins here.</p>
+        <a href="{% url 'core:explore' %}" class="btn-primary">Explore Ideas</a>
+    </div>
+    {% endif %}
+    {% endfor %}
 </div>
 {% endblock %}

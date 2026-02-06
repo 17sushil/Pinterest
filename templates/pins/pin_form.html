@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="create-pin-wrapper">
+    <div class="create-pin-card">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="create-header">
+                <h2>Create Pin</h2>
+                <button type="submit" class="btn-save btn-red">Save</button>
+            </div>
+
+            <div class="create-body">
+                <div class="upload-section">
+                    <div class="upload-box-wrapper">
+                        <!-- Standard file input for now, styled later -->
+                        <div class="upload-instruction">
+                            <i class="fas fa-arrow-circle-up fa-2x"></i>
+                            <p>Choose a file or drag and drop it here</p>
+                        </div>
+                        {{ form.image }}
+                    </div>
+                </div>
+
+                <div class="details-section">
+                    <div class="form-group">
+                        <label>Title</label>
+                        {{ form.title }}
+                    </div>
+
+                    <div class="form-group">
+                        <label>Description</label>
+                        {{ form.description }}
+                    </div>
+
+                    <div class="form-group">
+                        <label>Link</label>
+                        {{ form.link }}
+                    </div>
+
+                    <div class="form-group">
+                        <label>Board</label>
+                        {{ form.board }}
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
