@@ -6,7 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pinterest Clone</title>
     <link rel="stylesheet" href="/static/css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/pins.css">
+    <link rel="stylesheet" href="/static/css/boards.css">
+    <link rel="stylesheet" href="/static/css/profile.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 
@@ -16,7 +19,9 @@
             <a href="{% url 'core:home' %}"><i class="fas fa-layer-group" style="color: #e60023;"></i> Pinterest</a>
         </div>
         <form class="search-bar" action="{% url 'core:home' %}" method="get">
-            <i class="fas fa-search"></i>
+            <button type="submit" class="search-btn">
+                <i class="fas fa-search"></i>
+            </button>
             <input type="text" name="q" placeholder="Search for images..." value="{{ query|default:'' }}">
         </form>
         <div class="nav-links">

@@ -9,6 +9,7 @@ class Pin(models.Model):
     link = models.URLField(blank=True, null=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='pins')
     board = models.ForeignKey(Board, on_delete=models.SET_NULL, related_name='pins', blank=True, null=True)
+    is_uploaded = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
