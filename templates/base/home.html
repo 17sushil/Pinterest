@@ -15,38 +15,62 @@
 </div>
 {% endif %}
 
-{% if pins %}
-<div class="masonry-grid"
-    style="margin-top: {% if not request.user.is_authenticated and not query %}0{% else %}20px{% endif %};">
+<div class="masonry-grid {% if not request.user.is_authenticated and not query %}no-hero-margin{% endif %}"
+    data-authenticated="{{ request.user.is_authenticated|yesno:'true,false' }}"
+    data-login-url="{% url 'accounts:login' %}">
     {% for pin in pins %}
     <div class="pin-card">
         {% if pin.is_external %}
-        <a href="#" class="external-pin" data-image-url="{{ pin.image.url }}" data-title="{{ pin.title }}"
+        <div class="pin-image-wrapper external-link" data-image-url="{{ pin.image.url }}" data-title="{{ pin.title }}"
             data-author="{{ pin.user.username }}" data-author-image="{{ pin.user.profile_image.url }}"
-            data-source-url="{{ pin.remote_link }}" onclick="showImageModal(event, this)">
-            {% else %}
+            data-source-url="{{ pin.remote_link }}">
+            <img src="{{ pin.image.url }}" alt="{{ pin.title }}" loading="lazy">
+            <div class="pin-overlay">
+                <button class="btn-save"
+                    onclick="event.stopPropagation(); showImageModal(event, this.parentElement.parentElement)">Save</button>
+            </div>
+        </div>
+        {% else %}
+        <div class="pin-image-wrapper">
             <a href="{% url 'pins:pin_detail' pin.id %}">
-                {% endif %}
-                <img src="{{ pin.image.url }}" alt="{{ pin.title }}">
-                <div class="pin-overlay">
-                    <button class="btn-save">Save</button>
-                </div>
-                <div class="pin-info">
-                    {% if pin.title %}
-                    <h3>{{ pin.title|truncatechars:20 }}</h3>
-                    {% endif %}
-                    {% if pin.user.profile_image %}
-                    <div class="pin-user">
-                        <img src="{{ pin.user.profile_image.url }}" class="user-avatar-small">
-                        <span>{{ pin.user.username }}</span>
-                    </div>
-                    {% endif %}
-                </div>
+                <img src="{{ pin.image.url }}" alt="{{ pin.title }}" loading="lazy">
             </a>
+            <div class="pin-overlay" data-url="{% url 'pins:pin_detail' pin.id %}"
+                onclick="window.location.href=this.dataset.url">
+                <button class="btn-save"
+                    onclick="event.stopPropagation(); saveLocalPin(event, '{{ pin.id }}', this)">Save</button>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="pin-info">
+            {% if pin.title %}
+            <a href="{% if pin.is_external %}#{% else %}{% url 'pins:pin_detail' pin.id %}{% endif %}" {% if
+                pin.is_external
+                %}onclick="showImageModal(event, this.closest('.pin-card').querySelector('.pin-image-wrapper'))" {%
+                endif %}>
+                <h3>{{ pin.title|truncatechars:30 }}</h3>
+            </a>
+            {% endif %}
+
+            {% if pin.user %}
+            <div class="pin-user">
+                {% if pin.user.profile_image %}
+                <img src="{{ pin.user.profile_image.url }}" class="user-avatar-small" alt="{{ pin.user.username }}">
+                {% else %}
+                <div class="user-avatar-small"
+                    style="background: #efefef; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-user" style="font-size: 12px; color: #767676;"></i>
+                </div>
+                {% endif %}
+                <span>{{ pin.user.username }}</span>
+            </div>
+            {% endif %}
+        </div>
     </div>
     {% endfor %}
 </div>
-{% else %}
+{% if not pins %}
 {% if query %}
 <div class="empty-state">
     {% if missing_key %}
@@ -322,9 +346,75 @@
             padding: 24px;
         }
     }
+
+    .pin-image-wrapper {
+        position: relative;
+        border-radius: 20px;
+        overflow: hidden;
+        background: #efefef;
+    }
+
+    .pin-image-wrapper img {
+        width: 100%;
+        display: block;
+        transition: transform 0.3s ease;
+    }
+
+    .pin-image-wrapper:hover img {
+        transform: scale(1.03);
+    }
 </style>
 
 <script>
+    function saveLocalPin(event, pinId, buttonElement) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const grid = document.querySelector('.masonry-grid');
+        const isAuthenticated = grid.dataset.authenticated === 'true';
+        const loginUrl = grid.dataset.loginUrl;
+
+        if (!isAuthenticated) {
+            window.location.href = loginUrl;
+            return;
+        }
+
+        const originalText = buttonElement.innerHTML;
+        buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        buttonElement.disabled = true;
+
+        const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+        fetch(`/pins/${pinId}/save/`, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    buttonElement.innerHTML = '<i class="fas fa-check"></i> Saved!';
+                    buttonElement.classList.add('btn-saved');
+                    setTimeout(() => {
+                        buttonElement.innerHTML = originalText;
+                        buttonElement.disabled = false;
+                    }, 2000);
+                } else {
+                    alert('Error: ' + (data.error || 'Could not save pin'));
+                    buttonElement.innerHTML = originalText;
+                    buttonElement.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error saving pin:', error);
+                buttonElement.innerHTML = originalText;
+                buttonElement.disabled = false;
+            });
+    }
+
     let currentImageData = {};
 
     function showImageModal(event, element) {
